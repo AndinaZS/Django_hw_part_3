@@ -3,14 +3,16 @@ from users.models import User, Location
 
 
 class UserListSerializer(serializers.ModelSerializer):
+    adverts = serializers.IntegerField()
     locations = serializers.SlugRelatedField(
         many=True,
         read_only=True,
         slug_field='name'
     )
+
     class Meta:
         model = User
-        exclude = ['password']
+        fields = '__all__'
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -85,3 +87,9 @@ class UserDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id']
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'

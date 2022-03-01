@@ -18,7 +18,38 @@ class AdvertListView(ListView):
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
 
-        self.object_list = self.object_list.select_related('author').prefetch_related('category').order_by('price')
+        self.object_list = self.object_list.select_related('author').prefetch_related('category').order_by(
+            'price').reverse()
+
+        adv_name = request.GET.get('text', None)
+        if adv_name:
+            self.object_list = self.object_list.filter(
+                name__icontains=adv_name
+            )
+
+        cat_id = request.GET.get('cat', None)
+        if cat_id:
+            self.object_list = self.object_list.filter(
+                category__id__exact=cat_id
+            )
+
+        loc_name = request.GET.get('loc', None)
+        if loc_name:
+            self.object_list = self.object_list.filter(
+                author__locations__name__icontains=loc_name
+            )
+
+        price_from = request.GET.get('price_from', None)
+        if price_from:
+            self.object_list = self.object_list.filter(
+                price__gt=price_from
+            )
+
+        price_to = request.GET.get('price_to', None)
+        if price_to:
+            self.object_list = self.object_list.filter(
+                price__lt=price_to
+            )
 
         paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
         page_number = request.GET.get('page')
@@ -31,12 +62,11 @@ class AdvertListView(ListView):
                  'author': advert.author.username,
                  'price': advert.price,
                  'description': advert.description,
-                 'image': advert.image.url,
                  'category': advert.category.name,
                  }
             )
 
-        response = {'items':adverts,
+        response = {'items': adverts,
                     'num_pages': page_list.paginator.num_pages,
                     'total': page_list.paginator.count}
 
@@ -123,10 +153,9 @@ class AdvertImageView(UpdateView):
         self.object.save()
 
         return JsonResponse({
-                'id': self.object.id,
-                'name': self.object.name,
-                'image': self.object.image.url}, status=201)
-
+            'id': self.object.id,
+            'name': self.object.name,
+            'image': self.object.image.url}, status=201)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
